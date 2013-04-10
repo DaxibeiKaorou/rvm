@@ -139,6 +139,22 @@ __rvm_filter_installed_package_check()
   fi
 }
 
+__rvm_filter_installed_packages_find()
+{
+  typeset _package_installed_cmd="requirements_$1_lib_installed"
+  shift
+  __rvm_filter_installed_packages_reset
+  if
+    is_a_function "${_package_installed_cmd}_all_missing" "$@"
+  then
+    __rvm_filter_installed_package_from_missing "${_package_installed_cmd}_all_missing" "$@"
+  else
+    for _package_name in "$@"
+    do __rvm_filter_installed_package_check "${_package_installed_cmd}" "${_package_name}"
+    done
+  fi
+}
+
 __rvm_filter_installed_packages_summary()
 {
   (( ${#packages_installed[@]} == 0 )) ||
@@ -171,21 +187,10 @@ __rvm_filter_installed_packages()
 {
   typeset _package_installed_cmd _packages_install_cmd _package_name _list
 
-  _package_installed_cmd="requirements_$1_lib_installed"
   _package_install_cmd="requirements_$1_libs_install"
-  shift
 
-  __rvm_filter_installed_packages_reset
-  if
-    is_a_function "${_package_installed_cmd}_all_missing" "$@"
-  then
-    __rvm_filter_installed_package_from_missing "${_package_installed_cmd}_all_missing" "$@"
-  else
-    for _package_name
-    do __rvm_filter_installed_package_check "${_package_installed_cmd}" "${_package_name}"
-    done
-  fi
-  __rvm_filter_installed_packages_summary || return $?
+  __rvm_filter_installed_packages_find "$@" || return $?
+  __rvm_filter_installed_packages_summary   || return $?
   __rvm_filter_installed_packages_install "${_package_install_cmd}"
 }
 

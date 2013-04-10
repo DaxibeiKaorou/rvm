@@ -10,20 +10,42 @@ requirements_centos_libs_install()
   __rvm_try_sudo yum install -y "$@" || return $?
 }
 
+requirements_centos_verify_libs()
+{
+  __rvm_filter_installed_packages_find "$@"
+  typeset __package
+  for __package in "${packages_to_install[@]}"
+  do
+    install_package_extra "${__package%-devel}" "${__target}" ||
+      return $?
+  done
+  for __package in "${delayed_opt_dir[@]}"
+  do
+    __rvm_update_configure_opt_dir "${__target}" "${__package}"
+  done
+  true # for OSX
+}
+
 requirements_centos_ensure_libs()
 {
-  typeset -a packages_installed packages_missing packages_to_install
-  __rvm_filter_installed_packages centos "$@" || return $?
+  typeset -a packages_installed packages_missing packages_to_install delayed_opt_dir
+  __rvm_filter_installed_packages centos "$@" ||
+  requirements_centos_verify_libs centos "$@" ||
+  return $?
 }
 
 requirements_centos_run()
 {
+  typeset __target="$1"
   case "$1" in
     (update-system)
       true
       ;;
     (rvm)
       requirements_centos_ensure_libs bash curl git patch
+      ;;
+    (libyaml)
+      true # nothing extra needed - avoid nested loops
       ;;
     (jruby*)
       if (( ${_system_version%%.*} >= 16 ))

@@ -4,6 +4,7 @@ source "$rvm_scripts_path/functions/autolibs"
 source "$rvm_scripts_path/functions/build_config"
 source "$rvm_scripts_path/functions/build_requirements"
 source "$rvm_scripts_path/functions/osx-ssl-certs"
+source "$rvm_scripts_path/functions/pkg"
 
 # show the user selected compiler or return 1
 __rvm_selected_compiler()

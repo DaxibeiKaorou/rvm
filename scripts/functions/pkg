@@ -1,5 +1,33 @@
 #!/usr/bin/env bash
 
+# install_package_extra <what> <for> <for-path>
+install_package_extra()
+{
+  if
+    [[ "$2" =~ "rbx" ]] ||
+    [[ "$2" =~ "ruby" && " ${rvm_configure_flags[*]}" =~ " --enable-load-relative" ]]
+  then
+    # when relative is in effect libyaml is installed in ruby itself so it will be moved with ruby
+    (
+      __rvm_setup_compile_environment ${1}
+      prefix_path="${rvm_rubies_path}/$2" install_${1}
+    )
+    delayed_opt_dir+=( "${rvm_rubies_path}/$2" )
+  else
+    if
+      ${1}_installed
+    then
+      rvm_debug "${1} already installed"
+    else
+      (
+        __rvm_setup_compile_environment ${1}
+        install_${1}
+      )
+    fi
+    delayed_opt_dir+=( "${rvm_path}/usr" )
+  fi
+}
+
 install_package()
 {
   __rvm_db "${package}_url" "package_url"
